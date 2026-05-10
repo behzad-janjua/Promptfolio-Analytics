@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+:root {
+  --bg-deep:    #06090d;
+  --bg-surface: #0d1219;
+  --bg-raised:  #121821;
+  --border:     rgba(255, 255, 255, 0.06);
+  --green:      #10b981;
+  --red:        #f43f5e;
+
+  --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+@theme inline {
+  --color-background: var(--bg-deep);
+  --color-foreground: #e2e8f0;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--bg-deep);
+  color: #e2e8f0;
+  font-family: var(--font-geist-sans, system-ui, sans-serif);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scrollbar ─────────────────────────────── */
+::-webkit-scrollbar              { width: 4px; height: 4px; }
+::-webkit-scrollbar-track        { background: transparent; }
+::-webkit-scrollbar-thumb        { background: rgba(255,255,255,0.08); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover  { background: rgba(255,255,255,0.16); }
+
+/* ── Keyframes ─────────────────────────────── */
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-in-top {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes flash-green {
+  0%   { background-color: rgba(16, 185, 129, 0.16); }
+  100% { background-color: transparent; }
+}
+
+@keyframes flash-red {
+  0%   { background-color: rgba(244, 63, 94, 0.16); }
+  100% { background-color: transparent; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.75); }
+}
+
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ── Utility classes ───────────────────────── */
+
+.animate-fade-up {
+  animation: fade-up 300ms var(--ease-out) both;
+  opacity: 0;
+}
+
+.animate-fade-in {
+  animation: fade-in 260ms var(--ease-out) both;
+}
+
+.animate-slide-in-top {
+  animation: slide-in-top 220ms var(--ease-out) both;
+}
+
+/* Flash is applied only to inner wrapper elements, never to elements
+   that also carry animate-fade-up — prevents animation restart bug. */
+.price-flash-up   { animation: flash-green 900ms ease-out forwards; }
+.price-flash-down { animation: flash-red   900ms ease-out forwards; }
+
+.live-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+/* ── Ticker tape ───────────────────────────── */
+.ticker-wrap  { overflow: hidden; white-space: nowrap; }
+.ticker-inner {
+  display: inline-flex;
+  animation: ticker-scroll 60s linear infinite;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ticker-inner:hover { animation-play-state: paused; }
+}
+
+/* ── Card ──────────────────────────────────── */
+.glass-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+/* ── Button press ──────────────────────────── */
+.btn-press {
+  transition: transform 150ms var(--ease-out), opacity 150ms var(--ease-out);
+  cursor: pointer;
+}
+.btn-press:active { transform: scale(0.97); }
+
+/* ── Form inputs ───────────────────────────── */
+.field-input {
+  width: 100%;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #e2e8f0;
+  outline: none;
+  font-family: var(--font-geist-mono, monospace);
+}
+.field-input { transition: border-color 160ms var(--ease-out); }
+.field-input:focus { border-color: rgba(129, 140, 248, 0.6); }
+.field-input::placeholder { color: #334155; }
+
+/* ── Touch-safe hover ──────────────────────── */
+/* Tailwind's hover: utilities fire on tap on touch devices.
+   Gate decorative row/item hovers behind this media query. */
+@media (hover: none) {
+  .hover\:bg-white\/\[0\.025\]:hover,
+  .hover\:bg-white\/\[0\.015\]:hover { background-color: transparent; }
+}
+
+/* ── Reduced motion ────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-slide-in-top {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .ticker-inner { animation: none; }
+  .live-dot     { animation: none; }
+}
