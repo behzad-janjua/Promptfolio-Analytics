@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import Link from "next/link";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from "recharts";
@@ -317,6 +318,16 @@ export default function Home() {
               {formatCurrency(metrics.total)}
             </span>
           </div>
+          <Link
+            href="/advisor"
+            className="btn-press hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs font-medium hover:bg-violet-500/16 transition-colors duration-150"
+          >
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+              <circle cx="5.5" cy="5.5" r="2" fill="currentColor" />
+              <path d="M5.5 1v1.5M5.5 8.5V10M1 5.5h1.5M8.5 5.5H10" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+            </svg>
+            AI Advisor
+          </Link>
           <LiveClock />
         </div>
       </header>
