@@ -1,36 +1,157 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Promptfolio Analytics
+
+A real-time portfolio analytics platform with live price simulation, order management, technical signals, and an AI advisor powered by local LLMs via Ollama.
+
+---
+
+## Features
+
+### Live Dashboard (`/`)
+
+**Real-time price simulation**
+- 20 stocks across Technology, Finance, Healthcare, Consumer, Energy, Industrial, and ETF sectors
+- Prices tick every 5 seconds using a Gaussian random walk model with per-sector correlation and beta-adjusted volatility
+- Scrolling ticker tape across the top showing all 20 symbols with live price and day change
+
+**Portfolio holdings table**
+- 30-day sparkline chart per position
+- Live price with green/red flash on each tick
+- Shares, average cost, current value, unrealized P&L
+- AI signal badge per row (Strong Buy → Strong Sell)
+
+**Portfolio stats**
+- Total portfolio value, day P&L, total unrealized P&L, cash balance — all updating live
+
+**Order management**
+- Four order types: Market, Limit, Stop Loss, Trailing Stop
+- Buy and sell sides with estimated cost preview
+- Open orders panel with cancel — limit and stop orders fill automatically when the simulated price crosses the trigger
+- Full trade history with realized P&L per fill
+
+**AI signals panel**
+- RSI (14-period), SMA-20, SMA-50, SMA-200 computed on 365 days of historical closes plus the live price
+- Signal strength (Strong Buy / Buy / Hold / Sell / Strong Sell) with plain-language rationale per position
+
+---
+
+### AI Portfolio Advisor (`/advisor`)
+
+A chat interface backed by any locally running Ollama model. The system prompt is built fresh on every message and includes:
+
+- Every position: live price, average cost, value, unrealized P&L, day change, RSI, SMA-50, SMA-200, 52-week range, beta, P/E
+- Sector breakdown with dollar allocation and percentage weights
+- Cash balance and open order count
+- Recent trade history with realized P&L
+
+**Usage**
+- Select any available Ollama model from the header dropdown
+- Type freely or click a quick-prompt chip in the sidebar
+- Responses stream in token by token; stop generation at any time
+- Ask for a full portfolio review, concentration analysis, rebalancing suggestions, signal explanations, or bounce trade ideas
+
+**Quick prompts built in:**
+- Give me a complete portfolio review
+- What's my biggest concentration risk?
+- Which positions should I trim or exit?
+- How am I positioned for a market downturn?
+- Walk me through each signal and what it means
+- Should I rebalance? What specifically?
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- Yarn
+- [Ollama](https://ollama.com) (for the AI advisor)
+
+### Install and run
 
 ```bash
-npm run dev
-# or
+yarn install
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### AI Advisor setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The advisor requires a locally running Ollama instance.
 
-## Learn More
+```bash
+# Start the Ollama server
+ollama serve
 
-To learn more about Next.js, take a look at the following resources:
+# Pull a model (choose one)
+ollama pull llama3.2
+ollama pull mistral
+ollama pull gemma3
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Once running, the advisor page will detect available models automatically and populate the model selector. If Ollama is not running, the dashboard still works fully — only the `/advisor` page is affected.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Tech Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Layer | Choice |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 |
+| Charts | Recharts |
+| Components | Radix UI primitives |
+| Icons | Lucide React |
+| LLM | Ollama (local, any model) |
+| Fonts | Geist Sans + Geist Mono |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Project Structure
+
+```
+app/
+  page.tsx              # Live dashboard
+  advisor/
+    page.tsx            # AI chat advisor
+  api/
+    llm/chat/           # Streaming Ollama proxy
+    llm/models/         # Model list endpoint
+    portfolio/          # Benchmark, risk, Monte Carlo, rebalance, tax endpoints
+    signals/            # Signals API
+    stocks/             # Stock data endpoints
+
+contexts/
+  PriceContext.tsx      # Live price state, simulator lifecycle
+  PortfolioContext.tsx  # Portfolio state, order execution, open-order checking
+
+lib/
+  price-simulator.ts    # Gaussian random walk with sector correlation
+  order-engine.ts       # Market / limit / stop-loss / trailing-stop logic
+  recommendations.ts    # RSI, SMA, signal computation
+  stocks.ts             # Static stock metadata and starting portfolio
+  ollama.ts             # Streaming chat and model list client
+
+data/stocks/            # 365-day historical closes for all 20 symbols
+types/                  # Shared TypeScript interfaces
+```
+
+---
+
+## Starting Portfolio
+
+The app initialises with a pre-built portfolio so there is something to analyse immediately:
+
+| Ticker | Shares | Avg Cost |
+|--------|--------|----------|
+| AAPL   | 15     | $185.50  |
+| MSFT   | 8      | $390.00  |
+| NVDA   | 5      | $650.00  |
+| JPM    | 20     | $195.00  |
+| AMZN   | 3      | $182.00  |
+| TSLA   | 10     | $260.00  |
+| SPY    | 4      | $500.00  |
+
+Plus $4,250 cash. All prices, P&L, and signals update in real time from the simulator.
