@@ -1,6 +1,6 @@
 # Promptfolio Analytics
 
-A real-time portfolio analytics platform with live price simulation, order management, technical signals, and an AI advisor powered by local LLMs via Ollama.
+A real-time portfolio analytics platform with live price simulation, order management, technical signals, and an AI advisor powered by Gemini free-tier models or local LLMs via Ollama.
 
 ---
 
@@ -36,7 +36,7 @@ A real-time portfolio analytics platform with live price simulation, order manag
 
 ### AI Portfolio Advisor (`/advisor`)
 
-A chat interface backed by any locally running Ollama model. The system prompt is built fresh on every message and includes:
+A chat interface backed by Gemini Developer API free-tier models or any locally running Ollama model. The system prompt is built fresh on every message and includes:
 
 - Every position: live price, average cost, value, unrealized P&L, day change, RSI, SMA-50, SMA-200, 52-week range, beta, P/E
 - Sector breakdown with dollar allocation and percentage weights
@@ -44,9 +44,11 @@ A chat interface backed by any locally running Ollama model. The system prompt i
 - Recent trade history with realized P&L
 
 **Usage**
-- Select any available Ollama model from the header dropdown
+- Select a Gemini or Ollama model from the header dropdown
 - Type freely or click a quick-prompt chip in the sidebar
 - Responses stream in token by token; stop generation at any time
+- Attach screenshots/images when using a Gemini vision-capable model
+- Import brokerage screenshots into portfolio holdings with Gemini vision
 - Ask for a full portfolio review, concentration analysis, rebalancing suggestions, signal explanations, or bounce trade ideas
 
 **Quick prompts built in:**
@@ -65,7 +67,8 @@ A chat interface backed by any locally running Ollama model. The system prompt i
 
 - Node.js 18+
 - Yarn
-- [Ollama](https://ollama.com) (for the AI advisor)
+- Optional: [Ollama](https://ollama.com) for local AI advisor models
+- Optional: a Gemini API key from Google AI Studio for free-tier Gemini testing
 
 ### Install and run
 
@@ -78,7 +81,23 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ### AI Advisor setup
 
-The advisor requires a locally running Ollama instance.
+The advisor works with either the Gemini Developer API or a locally running Ollama instance.
+
+For the free Gemini setup, add an API key to `.env.local`:
+
+```bash
+GEMINI_API_KEY=your_google_ai_studio_key
+
+# Optional: override the default free-tier model list
+GEMINI_MODELS=gemini-2.5-flash-lite,gemini-2.5-flash,gemini-2.0-flash-lite,gemini-2.0-flash
+
+# Optional: choose the model used for screenshot imports
+GEMINI_VISION_MODEL=gemini-2.5-flash-lite
+```
+
+By default, the model selector puts `gemini-2.5-flash-lite` first for local/free testing.
+
+For local Ollama:
 
 ```bash
 # Start the Ollama server
@@ -90,7 +109,7 @@ ollama pull mistral
 ollama pull gemma3
 ```
 
-Once running, the advisor page will detect available models automatically and populate the model selector. If Ollama is not running, the dashboard still works fully — only the `/advisor` page is affected.
+Once configured, the advisor page detects available Gemini and Ollama models automatically and populates the model selector. If neither Gemini nor Ollama is available, the dashboard still works fully — only the `/advisor` page is affected.
 
 ---
 
@@ -104,7 +123,7 @@ Once running, the advisor page will detect available models automatically and po
 | Charts | Recharts |
 | Components | Radix UI primitives |
 | Icons | Lucide React |
-| LLM | Ollama (local, any model) |
+| LLM | Gemini Developer API free tier + Ollama (local, any model) |
 | Fonts | Geist Sans + Geist Mono |
 
 ---
@@ -117,7 +136,7 @@ app/
   advisor/
     page.tsx            # AI chat advisor
   api/
-    llm/chat/           # Streaming Ollama proxy
+    llm/chat/           # Streaming Gemini/Ollama proxy
     llm/models/         # Model list endpoint
     portfolio/          # Benchmark, risk, Monte Carlo, rebalance, tax endpoints
     signals/            # Signals API

@@ -76,9 +76,18 @@ export interface PortfolioState {
 export interface OllamaMessage {
   role: "user" | "assistant" | "system";
   content: string;
+  /** base64 data-URLs (e.g. "data:image/png;base64,...") — used by Gemini vision */
+  images?: string[];
 }
 
 export interface OllamaModel {
   name: string;
   size: number;
+}
+
+/** Structured holding extracted from a screenshot by Gemini vision */
+export interface ExtractedHolding {
+  ticker: string;
+  shares: number;
+  avgCost?: number;
 }

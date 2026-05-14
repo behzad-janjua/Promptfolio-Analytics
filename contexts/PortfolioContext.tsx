@@ -47,6 +47,7 @@ interface Ctx {
   portfolio: PortfolioState;
   placeOrder: (p: PlaceParams) => { ok: boolean; msg: string };
   cancelOrder: (id: string) => void;
+  importHolding: (ticker: string, shares: number, avgCost: number) => void;
 }
 
 const Context = createContext<Ctx | null>(null);
@@ -55,7 +56,10 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
   const [portfolio, setPortfolio] = useState<PortfolioState>(initial);
   const { prices, getPeak } = usePrices();
   const ref = useRef(portfolio);
-  ref.current = portfolio;
+
+  useEffect(() => {
+    ref.current = portfolio;
+  }, [portfolio]);
 
   useEffect(() => {
     if (ref.current.openOrders.length === 0) return;
@@ -92,8 +96,26 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     setPortfolio((s) => doCancel(s, id));
   }, []);
 
+  const importHolding = useCallback((ticker: string, shares: number, avgCost: number) => {
+    setPortfolio((s) => {
+      const existing = s.positions.find((p) => p.ticker === ticker);
+      if (existing) {
+        // Weighted-average cost basis merge
+        const totalShares = existing.shares + shares;
+        const newAvgCost  = (existing.shares * existing.avgCost + shares * avgCost) / totalShares;
+        return {
+          ...s,
+          positions: s.positions.map((p) =>
+            p.ticker === ticker ? { ...p, shares: totalShares, avgCost: newAvgCost } : p
+          ),
+        };
+      }
+      return { ...s, positions: [...s.positions, { ticker, shares, avgCost }] };
+    });
+  }, []);
+
   return (
-    <Context.Provider value={{ portfolio, placeOrder, cancelOrder }}>
+    <Context.Provider value={{ portfolio, placeOrder, cancelOrder, importHolding }}>
       {children}
     </Context.Provider>
   );
