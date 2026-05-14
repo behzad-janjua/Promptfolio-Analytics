@@ -1,4 +1,5 @@
 import type { OllamaMessage } from "@/types";
+import type { PortfolioImportResult } from "./portfolio-import-pipeline";
 
 export async function streamChat(
   model: string,
@@ -38,7 +39,7 @@ export async function listModels(): Promise<string[]> {
 /** Extract holdings from a screenshot data-URL using Gemini vision. */
 export async function importFromScreenshot(
   imageDataUrl: string
-): Promise<{ ticker: string; shares: number; avgCost?: number }[]> {
+): Promise<PortfolioImportResult> {
   const res = await fetch("/api/portfolio/import-screenshot", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -48,6 +49,5 @@ export async function importFromScreenshot(
     const err = await res.json().catch(() => ({ error: "Request failed" }));
     throw new Error(err.error ?? "Screenshot import failed");
   }
-  const { holdings } = await res.json();
-  return holdings;
+  return await res.json() as PortfolioImportResult;
 }

@@ -150,6 +150,7 @@ lib/
   price-simulator.ts    # Gaussian random walk with sector correlation
   order-engine.ts       # Market / limit / stop-loss / trailing-stop logic
   recommendations.ts    # RSI, SMA, signal computation
+  portfolio-import-pipeline.ts # Screenshot/text import prompt, parsing, normalization, and follow-up prompt helpers
   stocks.ts             # Static stock metadata and starting portfolio
   ollama.ts             # Streaming chat and model list client
 

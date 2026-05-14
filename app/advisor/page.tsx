@@ -7,6 +7,7 @@ import { usePortfolio } from "@/contexts/PortfolioContext";
 import { getStock } from "@/lib/stocks";
 import { computeSignal } from "@/lib/recommendations";
 import { streamChat, listModels, importFromScreenshot } from "@/lib/ollama";
+import { buildImportedHoldingsPrompt, type PortfolioImportResult } from "@/lib/portfolio-import-pipeline";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 import type { OllamaMessage, PortfolioState, ExtractedHolding } from "@/types";
 
@@ -338,7 +339,7 @@ export default function AdvisorPage() {
   const [ollamaDown,     setOllamaDown]     = useState(false);
   const [attachedImages, setAttachedImages] = useState<AttachedImage[]>([]);
   const [importLoading,  setImportLoading]  = useState(false);
-  const [importHoldings, setImportHoldings] = useState<ExtractedHolding[] | null>(null);
+  const [importDraft,    setImportDraft]    = useState<PortfolioImportResult | null>(null);
 
   const pricesRef    = useRef(prices);
   const portfolioRef = useRef(portfolio);
@@ -461,11 +462,11 @@ export default function AdvisorPage() {
     setImportLoading(true);
     try {
       const dataUrl  = await readFileAsDataUrl(files[0]);
-      const holdings = await importFromScreenshot(dataUrl);
-      if (holdings.length === 0) {
+      const result = await importFromScreenshot(dataUrl);
+      if (result.holdings.length === 0) {
         alert("No holdings found in screenshot. Try a clearer image.");
       } else {
-        setImportHoldings(holdings);
+        setImportDraft(result);
       }
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to process screenshot");
@@ -479,11 +480,9 @@ export default function AdvisorPage() {
     for (const h of holdings) {
       importHolding(h.ticker, h.shares, h.avgCost ?? prices.get(h.ticker) ?? 0);
     }
-    setImportHoldings(null);
+    setImportDraft(null);
 
-    // Kick off a chat about the imported holdings
-    const names = holdings.map((h) => h.ticker).join(", ");
-    send(`I just imported these positions from a screenshot: ${names}. Give me a quick take on each one.`);
+    send(buildImportedHoldingsPrompt(holdings));
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -513,11 +512,11 @@ export default function AdvisorPage() {
     <div className="min-h-screen flex flex-col bg-[#06090d]">
 
       {/* Import modal */}
-      {importHoldings && (
+      {importDraft && (
         <ImportModal
-          holdings={importHoldings}
+          holdings={importDraft.holdings}
           onImport={confirmImport}
-          onDismiss={() => setImportHoldings(null)}
+          onDismiss={() => setImportDraft(null)}
         />
       )}
 
